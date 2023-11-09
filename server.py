@@ -1,6 +1,6 @@
 import threading
 import socket
-host = 'IP'
+host = 'localhost'
 port = 9999
 
 #Create the server
@@ -19,14 +19,14 @@ def broadcast(coordinants, client): #Send coordinate list to client
             player.send(coordinants)
             return
         
-
 #Handle client connections
 def handleClient(client):
     while True:
         try:
             message = client.recv(1024) #Message comes from client, set max bytes as 1024
             broadcast(message, client) #Send info to other player
-        except:
+        except socket.error:
+            clients.remove(client)
             break #End loop
 
 #Main function to get connection

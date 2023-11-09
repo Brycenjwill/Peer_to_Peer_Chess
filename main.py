@@ -17,7 +17,7 @@ BLACK = pygame.Color("#212529")
 GREEN = pygame.Color("#ADB5BD")
 TAN = pygame.Color("#6C757D")
 
-SERVERIP = 'IP'#Set this IP before running.
+SERVERIP = 'localhost'#Set this IP before running.
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -692,17 +692,20 @@ thread = threading.Thread(target=clientRecieve, args=(coordinants,))
 thread.start()
 
 #Start Progam. . . 
-while running:
+running = True
+while running == True:
 
     if winner != 3:
         time.sleep(2)
         thread.join()
-        break
+        running = False
+        
 
     # poll for events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            break
+            running = False
+            
 
     #This section is used to select squares and move pieces.
     #Make sure the turn is the current player, so that you can only move pieces on your turn.
@@ -830,7 +833,9 @@ while running:
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
 
-thread.join()
+
 client.close()
+thread.join()
+
 pygame.quit()
 
