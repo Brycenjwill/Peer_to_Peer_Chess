@@ -673,18 +673,17 @@ while Started == False:
     clock.tick(60)  # limits FPS to 60
 
 def clientSend(square1, square2):
-    message = f"{square1.getAxis()},{square2.getAxis()}"
+    message = f"{square1.getAxis()},,,{square2.getAxis()}"
     client.send(message.encode('utf-8')) #Send coordinants to other player
 
 def clientRecieve(coordinants):
      while True:
         try:
-            message = client.recv(1024) #Get message from other player
-            print(f"Player {Player} got info from other player.")
-            coordinants = message.split(",")
+            message = client.recv(1024).decode() #Get message from other player
+            msgSplit = message.split(",,,")
+            coordinants.append(msgSplit)
+            print("Got message")
             print(coordinants)
-
-            break
         except:
             client.close()
             break
@@ -706,70 +705,71 @@ while running:
             running = False
 
     #This section is used to select squares and move pieces.
-    if Player == currentPlayer: #Make sure the turn is the current player, so that you can only move pieces on your turn.
-        for i, square in enumerate(squares):
-            squareRect = pygame.Rect(square.getPos()[0], square.getPos()[1], 50, 50)
-            #Check if mouse over square
-            if squareRect.collidepoint(pygame.mouse.get_pos()):
-                
-                if squareRect.collidepoint(pygame.mouse.get_pos()): #if you click on a square  #gets stored square
-                    if event.type == pygame.MOUSEBUTTONDOWN:
-                        #time.sleep(.1) #Wait to avoid multiclick, this is chess after all
-                        #Check if the square you are mousing over is movable. . .
-                        if square in possibleMoves:
-                            checked = False
-                            movepiece(storedSquares[0], square)
-                            clientSend(storedSquares[0], square) #Send coordinants to other player. . .
-                            print("send")
-                            for square in squares: #Reset all board colors
-                                square.unselect()
-                            storedSquares = [0]
-                            possibleMoves = [] #Reset possible moves
-                            currentPlayer = switchTeams(currentPlayer)
+    #Make sure the turn is the current player, so that you can only move pieces on your turn.
+    for i, square in enumerate(squares):
+        squareRect = pygame.Rect(square.getPos()[0], square.getPos()[1], 50, 50)
+        #Check if mouse over square
+        if squareRect.collidepoint(pygame.mouse.get_pos()):   
+                if event.type == pygame.MOUSEBUTTONDOWN:
+
+                    #time.sleep(.1) #Wait to avoid multiclick, this is chess after all
+                    #Check if the square you are mousing over is movable. . 
+                    if storedSquares[0] != 0:
+                            if square in possibleMoves:
+                                movepiece(storedSquares[0], square)
+                                clientSend(storedSquares[0], square) #Send coordinants to other player. . .
+                                for square in squares: #Reset all board colors
+                                    square.unselect()
+                                storedSquares = [0]
+                                possibleMoves = [] #Reset possible moves
+                                currentPlayer = switchTeams(currentPlayer)
 
 
-                        elif storedSquares[0] != 0: #if there is already a square selected
+                    if storedSquares[0] != 0: #if there is already a square selected
+                        if Player == currentPlayer:
                             if square.getOccupied() == True:
-                                if square.getPiece().getTeam() == currentPlayer:
+                                if square.getPiece().getTeam() == Player:
                                     selectedSquare = square #Maybe store the square you last hovered on?
                                     storedSquares.append(storedSquares[0]) #last square clicked on
                                     storedSquares[0] = selectedSquare
                                     squaredex = i #Save index of selected square
                                     possibleMoves = []
-                        else:
+                    else: #first time selecting a piece per turn
+                        if Player == currentPlayer:
                             if square.getOccupied() == True:
-                                if square.getPiece().getTeam() == currentPlayer:
+                                if square.getPiece().getTeam() == Player:
                                     storedSquares[0] = square #For first click
                                     squaredex = i #Save index of selected square
 
-                        if storedSquares[0] != 0:
-                            storedSquares[0].select()
-                        if len(storedSquares) > 1: #if there are two stored squares, one selected and one to unselect
-                            storedSquares[1].unselect()
-                            storedSquares.pop() #forget about old stored square
-            else:
-                #Reset color once no longer hovering over square, or once a square is no longer selected.
-                square.resetColor()
-                if check == True:
-                    if checkMarkRect.collidepoint(pygame.mouse.get_pos()):
-                        if  event.type == pygame.MOUSEBUTTONDOWN:
-                            winner = switchTeams(currentPlayer)
-
-    else: #if the current player is waiting for a result. . .
+                    if storedSquares[0] != 0:
+                        storedSquares[0].select()
+                    if len(storedSquares) > 1: #if there are two stored squares, one selected and one to unselect
+                        storedSquares[1].unselect()
+                        storedSquares.pop() #forget about old stored square
+        else:
+            #Reset color once no longer hovering over square, or once a square is no longer selected.
+            square.resetColor()
+            if check == True:
+                if checkMarkRect.collidepoint(pygame.mouse.get_pos()):
+                    if  event.type == pygame.MOUSEBUTTONDOWN:
+                        winner = switchTeams(currentPlayer)
+    
+    if Player != currentPlayer: #if the current player is waiting for a result. . .
+        storedSquares = [0]
         if len(coordinants) != 0: #This means that the client has recieved info from the server.
             #TODO: Once you get the coordinants back from the other player, change the 
             #current player, and move pieces on this client. 
+            print(f"0 {coordinants[0][0]}")
+            print(f"1 {coordinants[0][1]}")
             for square in squares:
-                if square.getAxis() == coordinants[0]:
+                print(square.getAxis())
+                if str(square.getAxis()) == coordinants[0][0]:
                     square1 = square
-                elif square.getAxis == coordinants[1]:
+                elif str(square.getAxis()) == coordinants[0][1]:
                     square2 = square
-            coordinants = [] #Reset coordinants list
+            coordinants.clear() #Reset coordinants list
             movepiece(square1, square2) #Move pieces on this clients end
             currentPlayer = switchTeams(currentPlayer) #Switch current player
-                
-
-
 
     #Run through piece types, get list of possible moves/squares (possibleMoves)
 
@@ -826,4 +826,7 @@ while running:
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
 
+
+thread.join()
+client.close()
 pygame.quit()

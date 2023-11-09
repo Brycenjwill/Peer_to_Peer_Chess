@@ -13,12 +13,10 @@ clients = []
 
 #Send message to client
 def broadcast(coordinants, client): #Send coordinate list to client
-    print("sending?")
     for player in clients:
         if player != client:
-            print(coordinants)
+            print("Sending coordinantes. . .")
             player.send(coordinants)
-            print("sending coordinants. . .")
             return
         
 
@@ -34,7 +32,7 @@ def handleClient(client):
 #Main function to get connection
 def recieve():
     while True:
-        if len(clients) < 2: #Only accept 2 players at once!
+        if len(clients) < 3: #Only accept 2 players at once!
             print("Listening for connections. . .")
             client, address = server.accept() #Waiting for any connection
             clients.append(client)
