@@ -15,7 +15,7 @@ clients = []
 def broadcast(coordinants, client): #Send coordinate list to client
     for player in clients:
         if player != client:
-            print("Sending coordinantes. . .")
+            print("Sending data. . .")
             player.send(coordinants)
             return
         
@@ -25,6 +25,7 @@ def handleClient(client):
         try:
             message = client.recv(1024) #Message comes from client, set max bytes as 1024
             broadcast(message, client) #Send info to other player
+            print("Sending message. . .")
         except socket.error:
             clients.remove(client)
             break #End loop

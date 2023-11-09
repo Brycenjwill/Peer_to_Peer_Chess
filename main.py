@@ -672,6 +672,10 @@ while Started == False:
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
 
+def checkMateSend():
+    message = "Checkmate"
+    client.send(message.encode('utf-8')) #Send checkmate to server
+
 def clientSend(square1, square2):
     message = f"{square1.getAxis()},,,{square2.getAxis()}"
     client.send(message.encode('utf-8')) #Send coordinants to other player
@@ -680,10 +684,11 @@ def clientRecieve(coordinants):
      while True:
         try:
             message = client.recv(1024).decode() #Get message from other player
-            msgSplit = message.split(",,,")
-            coordinants.append(msgSplit)
-            print("Got message")
-            print(coordinants)
+            if message != "Checkmate":
+                msgSplit = message.split(",,,")
+                coordinants.append(msgSplit)
+            else:
+                coordinants.append(message)
         except:
             client.close()
             break
@@ -696,9 +701,8 @@ running = True
 while running == True:
 
     if winner != 3:
-        time.sleep(2)
-        thread.join()
-        running = False
+        time.sleep(3)
+        break
         
 
     # poll for events
@@ -756,25 +760,28 @@ while running == True:
                 if checkMarkRect.collidepoint(pygame.mouse.get_pos()):
                     if  event.type == pygame.MOUSEBUTTONDOWN:
                         winner = switchTeams(currentPlayer)
+                        checkMateSend()
 
 
     
     if Player != currentPlayer: #if the current player is waiting for a result. . .
-        storedSquares = [0]
-        if len(coordinants) != 0: #This means that the client has recieved info from the server.
-            #TODO: Once you get the coordinants back from the other player, change the 
-            #current player, and move pieces on this client. 
-            print(f"0 {coordinants[0][0]}")
-            print(f"1 {coordinants[0][1]}")
-            for square in squares:
-                print(square.getAxis())
-                if str(square.getAxis()) == coordinants[0][0]:
-                    square1 = square
-                elif str(square.getAxis()) == coordinants[0][1]:
-                    square2 = square
-            coordinants.clear() #Reset coordinants list
-            movepiece(square1, square2) #Move pieces on this clients end
-            currentPlayer = switchTeams(currentPlayer) #Switch current player
+        if winner == 3:
+            storedSquares = [0]
+            if len(coordinants) != 0: #This means that the client has recieved info from the server.
+                #TODO: Once you get the coordinants back from the other player, change the 
+                #current player, and move pieces on this client. 
+                if "Checkmate" in coordinants[0]:
+                    winner = switchTeams(currentPlayer)
+                        
+                else:
+                    for square in squares:
+                        if str(square.getAxis()) == coordinants[0][0]:
+                            square1 = square
+                        elif str(square.getAxis()) == coordinants[0][1]:
+                            square2 = square
+                    coordinants.clear() #Reset coordinants list
+                    movepiece(square1, square2) #Move pieces on this clients end
+                    currentPlayer = switchTeams(currentPlayer) #Switch current player
 
     #Run through piece types, get list of possible moves/squares (possibleMoves)
 
@@ -807,9 +814,9 @@ while running == True:
             winner = "Black"
         winnerDisplay = font.render(f'{winner} wins!', True, WHITE, BLACK)
         screen.blit(winnerDisplay, (160, 530))
+        print("Someone won!")
         check = False
-        time.sleep(1)
-        break
+
 
     if check == True:
         checkmateDisplay = font.render(f'Checkmate?', True, WHITE, BLACK)
