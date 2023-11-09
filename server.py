@@ -1,12 +1,12 @@
 import threading
 import socket
-host = 'localhost'
+host = 'IP'
 port = 9999
 
 #Create the server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-server.bind((host, port))
+server.bind(("", port))
 
 server.listen()
 clients = []

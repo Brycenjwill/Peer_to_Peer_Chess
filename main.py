@@ -17,7 +17,7 @@ BLACK = pygame.Color("#212529")
 GREEN = pygame.Color("#ADB5BD")
 TAN = pygame.Color("#6C757D")
 
-SERVERIP = 'localhost'#Set this IP before running.
+SERVERIP = 'IP'#Set this IP before running.
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -696,6 +696,8 @@ while running:
 
     if winner != 3:
         time.sleep(2)
+        thread.join()
+        client.close()
         pygame.quit()
         break
 
@@ -753,6 +755,8 @@ while running:
                 if checkMarkRect.collidepoint(pygame.mouse.get_pos()):
                     if  event.type == pygame.MOUSEBUTTONDOWN:
                         winner = switchTeams(currentPlayer)
+                        thread.join()
+                        client.close()
     
     if Player != currentPlayer: #if the current player is waiting for a result. . .
         storedSquares = [0]
@@ -827,6 +831,5 @@ while running:
     clock.tick(60)  # limits FPS to 60
 
 
-thread.join()
-client.close()
+
 pygame.quit()
