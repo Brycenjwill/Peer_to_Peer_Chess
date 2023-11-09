@@ -697,14 +697,12 @@ while running:
     if winner != 3:
         time.sleep(2)
         thread.join()
-        pygame.quit()
         break
 
     # poll for events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            thread.join()
-            pygame.quit()
+            break
 
     #This section is used to select squares and move pieces.
     #Make sure the turn is the current player, so that you can only move pieces on your turn.
@@ -808,7 +806,7 @@ while running:
         screen.blit(winnerDisplay, (160, 530))
         check = False
         time.sleep(1)
-        pygame.quit()
+        break
 
     if check == True:
         checkmateDisplay = font.render(f'Checkmate?', True, WHITE, BLACK)
@@ -832,4 +830,7 @@ while running:
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
 
+thread.join()
+client.close()
+pygame.quit()
 
