@@ -697,14 +697,14 @@ while running:
     if winner != 3:
         time.sleep(2)
         thread.join()
-        client.close()
         pygame.quit()
         break
 
     # poll for events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            thread.join()
+            pygame.quit()
 
     #This section is used to select squares and move pieces.
     #Make sure the turn is the current player, so that you can only move pieces on your turn.
@@ -755,8 +755,8 @@ while running:
                 if checkMarkRect.collidepoint(pygame.mouse.get_pos()):
                     if  event.type == pygame.MOUSEBUTTONDOWN:
                         winner = switchTeams(currentPlayer)
-                        thread.join()
-                        client.close()
+
+
     
     if Player != currentPlayer: #if the current player is waiting for a result. . .
         storedSquares = [0]
@@ -807,6 +807,8 @@ while running:
         winnerDisplay = font.render(f'{winner} wins!', True, WHITE, BLACK)
         screen.blit(winnerDisplay, (160, 530))
         check = False
+        time.sleep(1)
+        pygame.quit()
 
     if check == True:
         checkmateDisplay = font.render(f'Checkmate?', True, WHITE, BLACK)
@@ -831,5 +833,3 @@ while running:
     clock.tick(60)  # limits FPS to 60
 
 
-
-pygame.quit()
